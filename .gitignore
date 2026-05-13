@@ -39,3 +39,6 @@ build/
 # Maven 編譯產物
 target/
 
+# .env
+.env
+
