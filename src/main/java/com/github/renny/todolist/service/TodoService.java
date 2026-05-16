@@ -3,10 +3,13 @@ package com.github.renny.todolist.service;
 import com.github.renny.todolist.dto.response.CreateTodoResponse;
 import com.github.renny.todolist.repository.TodoRepository;
 import com.github.renny.todolist.todo.Todo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TodoService {
+    private static final Logger log = LoggerFactory.getLogger(TodoService.class);
     private final TodoRepository todoRepository;
 
     public TodoService(TodoRepository todoRepository){
@@ -14,9 +17,10 @@ public class TodoService {
     }
 
     public CreateTodoResponse createTodo(String mission, String note){
-
+        log.info("開始建立待辦事項: {} , 待辦事項備註: {}",mission,note);
         Todo todo = new Todo(mission,note);
         Todo saveTodo = todoRepository.save(todo);
+        log.info("完成建立待辦事項,id: {}",saveTodo.getId());
         return new CreateTodoResponse(
                 saveTodo.getId(),
                 saveTodo.getCompleted(),

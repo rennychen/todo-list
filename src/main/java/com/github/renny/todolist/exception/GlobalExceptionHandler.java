@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        log.warn("資源不存在, {}" , errorMessage);
+        log.warn("驗證格式錯誤, {}" , errorMessage);
         ApiResponse<Void> response = ApiResponse.error("格式錯誤," + errorMessage);
         return ResponseEntity.badRequest().body(response);
     }

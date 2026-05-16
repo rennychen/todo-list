@@ -42,3 +42,7 @@ target/
 # .env
 .env
 
+#log
+logs/
+*.log
+
