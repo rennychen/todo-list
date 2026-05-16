@@ -14,9 +14,6 @@ public class TodoService {
     }
 
     public CreateTodoResponse createTodo(String mission, String note){
-        if(mission == null || mission.isBlank() ){
-            System.out.println(" ?");
-        }
 
         Todo todo = new Todo(mission,note);
         Todo saveTodo = todoRepository.save(todo);

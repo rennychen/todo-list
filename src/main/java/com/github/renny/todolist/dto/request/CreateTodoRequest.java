@@ -1,6 +1,9 @@
 package com.github.renny.todolist.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class CreateTodoRequest {
+    @NotBlank(message = " 待辦任務不得為空 ")
     private String mission;
     private String note;
 
