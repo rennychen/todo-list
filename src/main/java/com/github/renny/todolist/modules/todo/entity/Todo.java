@@ -1,4 +1,4 @@
-package com.github.renny.todolist.todo;
+package com.github.renny.todolist.modules.todo.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

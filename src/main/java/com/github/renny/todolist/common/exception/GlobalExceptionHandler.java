@@ -1,6 +1,6 @@
-package com.github.renny.todolist.exception;
+package com.github.renny.todolist.common.exception;
 
-import com.github.renny.todolist.dto.response.ApiResponse;
+import com.github.renny.todolist.common.response.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

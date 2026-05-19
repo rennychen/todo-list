@@ -1,10 +1,9 @@
-package com.github.renny.todolist.controller;
+package com.github.renny.todolist.modules.todo.controller;
 
-import com.github.renny.todolist.dto.request.CreateTodoRequest;
-import com.github.renny.todolist.dto.response.ApiResponse;
-import com.github.renny.todolist.dto.response.CreateTodoResponse;
-import com.github.renny.todolist.service.TodoService;
-import com.github.renny.todolist.todo.Todo;
+import com.github.renny.todolist.modules.todo.dto.request.CreateTodoRequest;
+import com.github.renny.todolist.common.response.ApiResponse;
+import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
+import com.github.renny.todolist.modules.todo.service.TodoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

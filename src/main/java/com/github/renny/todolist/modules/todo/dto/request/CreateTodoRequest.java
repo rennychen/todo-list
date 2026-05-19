@@ -1,4 +1,4 @@
-package com.github.renny.todolist.dto.request;
+package com.github.renny.todolist.modules.todo.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

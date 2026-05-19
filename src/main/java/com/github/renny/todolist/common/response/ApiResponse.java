@@ -1,4 +1,4 @@
-package com.github.renny.todolist.dto.response;
+package com.github.renny.todolist.common.response;
 
 public class ApiResponse<T> {
     private final boolean status;

@@ -1,4 +1,4 @@
-package com.github.renny.todolist.dto.response;
+package com.github.renny.todolist.modules.todo.dto.response;
 
 import java.time.LocalDate;
 
