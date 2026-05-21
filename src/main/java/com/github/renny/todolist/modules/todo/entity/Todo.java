@@ -1,5 +1,6 @@
 package com.github.renny.todolist.modules.todo.entity;
 
+import com.github.renny.todolist.common.exception.TodoValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,10 +21,20 @@ public class Todo {
     private String note;
     private LocalDate createDate;
 
-    private Todo(){}
+    private Todo(){}  // for JPA
     public Todo(String mission, String note){
+        if (mission == null || mission.isBlank()) {
+            throw new TodoValidationException("建立待辦事項時，任務名稱不可為空");
+        }
         this.mission = mission;
         this.note = note;
+    }
+    private Todo(Long id,boolean completed,String mission,String note,LocalDate createDate){  //for JUnit
+        this.id = id;
+        this.completed = completed;
+        this.mission = mission;
+        this.note = note;
+        this.createDate=createDate;
     }
 
     @PrePersist
@@ -63,6 +74,45 @@ public class Todo {
         this.note = note;
     }
 
+    public static TodoBuilder builder(){
+        return new TodoBuilder();
+    }
 
+    public static class TodoBuilder{
+        private Long id;
+        private boolean completed;
+        private String mission;
+        private String note;
+        private LocalDate createDate;
+
+        public TodoBuilder id(Long id){
+            this.id = id;
+            return this;
+        }
+
+        public TodoBuilder completed(boolean completed){
+            this.completed = completed;
+            return this;
+        }
+
+        public TodoBuilder mission(String mission){
+            this.mission = mission;
+            return this;
+        }
+
+        public TodoBuilder note(String note){
+            this.note = note;
+            return this;
+        }
+
+        public TodoBuilder createDate(LocalDate createDate){
+            this.createDate = createDate;
+            return this;
+        }
+
+        public Todo builder(){
+            return new Todo(this.id,this.completed,this.mission,this.note,this.createDate);
+        }
+    }
 
 }

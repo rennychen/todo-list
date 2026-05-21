@@ -1,8 +1,8 @@
-package com.github.renny.todolist.service;
+package com.github.renny.todolist.modules.todo.service;
 
-import com.github.renny.todolist.dto.response.CreateTodoResponse;
-import com.github.renny.todolist.repository.TodoRepository;
-import com.github.renny.todolist.todo.Todo;
+import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
+import com.github.renny.todolist.modules.todo.repository.TodoRepository;
+import com.github.renny.todolist.modules.todo.entity.Todo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

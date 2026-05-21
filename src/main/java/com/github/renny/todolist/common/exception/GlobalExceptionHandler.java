@@ -22,8 +22,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(TodoValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> HandleTodoValidation(TodoValidationException e){
+        log.warn("格式錯誤, {}",e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("格式錯誤," + e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> formatValidationError(MethodArgumentNotValidException e){
+    public ResponseEntity<ApiResponse<Void>> HandleFormatValidationError(MethodArgumentNotValidException e){
         String errorMessage = e.getBindingResult()
                 .getFieldErrors()
                 .stream()
