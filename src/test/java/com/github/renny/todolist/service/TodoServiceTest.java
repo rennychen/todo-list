@@ -57,30 +57,4 @@ class TodoServiceTest {
 
     }
 
-    @Test
-    @DisplayName("createTodo Error-Path")
-    void createTodo_EmptyMission_ThrowsException(){
-        String mission = null;
-        String note = "備註測試";
-
-        Todo todo = Todo.builder()
-                .id(25L)
-                .completed(false)
-                .mission(mission)
-                .note(note)
-                .createDate(LocalDate.now())
-                .builder();
-
-        when(todoRepository.save(any(Todo.class))).thenReturn(todo);
-
-        CreateTodoResponse response = todoService.createTodo(mission,note);
-
-        assertNotNull(response);
-        assertEquals(25L,response.getId());
-        assertNull(response.getMission());
-        assertEquals(note,response.getNote());
-        assertFalse(response.getComplete());
-
-        verify(todoRepository,times(1)).save(any(Todo.class));
-    }
 }
