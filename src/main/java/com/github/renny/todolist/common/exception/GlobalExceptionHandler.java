@@ -23,14 +23,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TodoValidationException.class)
-    public ResponseEntity<ApiResponse<Void>> HandleTodoValidation(TodoValidationException e){
+    public ResponseEntity<ApiResponse<Void>> handleTodoValidation(TodoValidationException e){
         log.warn("格式錯誤, {}",e.getMessage());
         ApiResponse<Void> response = ApiResponse.error("格式錯誤," + e.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> HandleFormatValidationError(MethodArgumentNotValidException e){
+    public ResponseEntity<ApiResponse<Void>> handleFormatValidationError(MethodArgumentNotValidException e){
         String errorMessage = e.getBindingResult()
                 .getFieldErrors()
                 .stream()

@@ -1,6 +1,8 @@
 package com.github.renny.todolist.modules.todo.service;
 
+import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
+import com.github.renny.todolist.modules.todo.dto.response.ReadTodoResponse;
 import com.github.renny.todolist.modules.todo.repository.TodoRepository;
 import com.github.renny.todolist.modules.todo.entity.Todo;
 import org.slf4j.Logger;
@@ -27,5 +29,12 @@ public class TodoService {
                 saveTodo.getCreateDate(),
                 saveTodo.getMission(),
                 saveTodo.getNote());
+    }
+
+    public ReadTodoResponse readTodo(Long id){
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到該任務"));
+        log.info("透過id找到該任務,任務: {},備註: {}",todo.getMission(),todo.getNote());
+        return new ReadTodoResponse(todo.getMission(),todo.getNote());
     }
 }
