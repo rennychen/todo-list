@@ -110,7 +110,7 @@ public class Todo {
             return this;
         }
 
-        public Todo builder(){
+        public Todo build(){
             return new Todo(this.id,this.completed,this.mission,this.note,this.createDate);
         }
     }

@@ -35,6 +35,10 @@ public class TodoService {
         Todo todo = todoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到該任務"));
         log.info("透過id找到該任務,任務: {},備註: {}",todo.getMission(),todo.getNote());
-        return new ReadTodoResponse(todo.getMission(),todo.getNote());
+        return new ReadTodoResponse(
+                todo.getMission(),
+                todo.getNote(),
+                todo.getCompleted()
+                ,todo.getCreateDate());
     }
 }
