@@ -5,6 +5,7 @@ import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
 import com.github.renny.todolist.modules.todo.dto.response.ReadTodoResponse;
 import com.github.renny.todolist.modules.todo.repository.TodoRepository;
 import com.github.renny.todolist.modules.todo.entity.Todo;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -40,5 +41,14 @@ public class TodoService {
                 todo.getNote(),
                 todo.getCompleted()
                 ,todo.getCreateDate());
+    }
+
+    @Transactional
+    public void updateTodoStatus(Long id) {
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到該任務"));
+        todo.setCompleted(!todo.getCompleted());
+        log.info("任務狀態更新完成,id= {},目前狀態= {}",id,todo.getCompleted());
+        todoRepository.save(todo);
     }
 }

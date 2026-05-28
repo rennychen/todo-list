@@ -9,6 +9,7 @@ import com.github.renny.todolist.modules.todo.repository.TodoRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -88,13 +90,49 @@ class TodoServiceTest {
     }
 
     @Test
-    @DisplayName("readTodo Sad-Path-Not-Found-Id")
-    void readTodo_error(){
+    @DisplayName("readTodo Sad-Path:當 ID 不存在時應拋出 ResourceNotFoundException")
+    void readTodo_EmptyId_ThrowException(){
         Long id = 99L;
 
         when(todoRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,() -> { todoService.readTodo(id); } );
+    }
+
+    @Test
+    @DisplayName("updateTodoStatus Happy-Path")
+    void updateTodoStatus_success(){
+        Long id = 5L;
+
+        Todo mockedTodo = Todo.builder()
+                .createDate(LocalDate.of(2026,5,28))
+                .note(null)
+                .mission("happy path test")
+                .id(5L)
+                .completed(false)
+                .build();
+
+        when(todoRepository.findById(5L)).thenReturn(Optional.of(mockedTodo));
+        when(todoRepository.save(any(Todo.class))).thenReturn(mockedTodo);
+
+
+        todoService.updateTodoStatus(id);
+
+        ArgumentCaptor<Todo> captor = ArgumentCaptor.forClass(Todo.class);
+        verify(todoRepository).save(captor.capture());
+        assertTrue(captor.getValue().getCompleted());
+
+        verify(todoRepository,times(1)).findById(5L);
+    }
+
+    @Test
+    @DisplayName("updateTodo Sad-Path:當 ID 不存在時應拋出 ResourceNotFoundException")
+    void updateTodoStatus_EmptyId_ThrowException(){
+        Long id = 5L;
+
+        when(todoRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodoStatus(id); });
     }
 
 }
