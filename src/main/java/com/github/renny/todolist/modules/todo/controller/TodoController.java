@@ -2,8 +2,10 @@ package com.github.renny.todolist.modules.todo.controller;
 
 import com.github.renny.todolist.modules.todo.dto.request.CreateTodoRequest;
 import com.github.renny.todolist.common.response.ApiResponse;
+import com.github.renny.todolist.modules.todo.dto.request.UpdateTodoRequest;
 import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
 import com.github.renny.todolist.modules.todo.dto.response.ReadTodoResponse;
+import com.github.renny.todolist.modules.todo.dto.response.UpdateTodoResponse;
 import com.github.renny.todolist.modules.todo.service.TodoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,7 @@ public class TodoController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CreateTodoResponse>> createTodo(@RequestBody @Valid CreateTodoRequest request){
-        CreateTodoResponse successData = todoService.createTodo(request.getMission(),request.getNote());
+        CreateTodoResponse successData = todoService.createTodo(request);
         return ResponseEntity.ok(ApiResponse.success("建立任務成功!",successData));
     }
 
@@ -41,5 +43,12 @@ public class TodoController {
     public ResponseEntity<ApiResponse<Void>> updateTodoStatus(@PathVariable Long id){
         todoService.updateTodoStatus(id);
         return ResponseEntity.ok(ApiResponse.success("更改待辦任務狀態成功",null));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<UpdateTodoResponse>> updateTodo(@PathVariable Long id,
+                                                                      @RequestBody @Valid UpdateTodoRequest request){
+        UpdateTodoResponse successData = todoService.updateTodo(id,request);
+        return ResponseEntity.ok(ApiResponse.success("更改任務成功!",successData));
     }
 }

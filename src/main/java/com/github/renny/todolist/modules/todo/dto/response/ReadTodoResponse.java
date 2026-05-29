@@ -27,15 +27,4 @@ public class ReadTodoResponse {
 
     public LocalDate getCreateDate(){return createDate;}
 
-    public void setMission(String mission){
-        this.mission = mission;
-    }
-
-    public void setNote(String note){
-        this.note = note;
-    }
-
-    public void setComplete(boolean complete){ this.complete = complete; }
-
-    public void setCreateDate(LocalDate createDate){ this.createDate = createDate; }
 }

@@ -1,8 +1,11 @@
-package com.github.renny.todolist.service;
+package com.github.renny.todolist.modules.todo.service;
 
 import com.github.renny.todolist.common.exception.ResourceNotFoundException;
+import com.github.renny.todolist.modules.todo.dto.request.CreateTodoRequest;
+import com.github.renny.todolist.modules.todo.dto.request.UpdateTodoRequest;
 import com.github.renny.todolist.modules.todo.dto.response.CreateTodoResponse;
 import com.github.renny.todolist.modules.todo.dto.response.ReadTodoResponse;
+import com.github.renny.todolist.modules.todo.dto.response.UpdateTodoResponse;
 import com.github.renny.todolist.modules.todo.entity.Todo;
 import com.github.renny.todolist.modules.todo.service.TodoService;
 import com.github.renny.todolist.modules.todo.repository.TodoRepository;
@@ -41,6 +44,10 @@ class TodoServiceTest {
         String mission = "代辦任務測試";
         String note = "備註測試";
 
+        CreateTodoRequest request = new CreateTodoRequest();
+        request.setMission(mission);
+        request.setNote(note);
+
         Todo todo = Todo.builder()
                 .id(25L)
                 .completed(false)
@@ -51,7 +58,7 @@ class TodoServiceTest {
 
         when(todoRepository.save(any(Todo.class))).thenReturn(todo);
 
-        CreateTodoResponse response = todoService.createTodo(mission,note);
+        CreateTodoResponse response = todoService.createTodo(request);
 
         assertNotNull(response);
         assertEquals(25L,response.getId());
@@ -133,6 +140,52 @@ class TodoServiceTest {
         when(todoRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodoStatus(id); });
+    }
+
+    @Test
+    @DisplayName("updateTodo Happy-Path")
+    void updateTodo_success(){
+        Long id = 7L;
+        String mission = "buy tea.";
+        String note = "happy path test";
+
+        UpdateTodoRequest request = new UpdateTodoRequest();
+        request.setMission(mission);
+        request.setNote(note);
+
+        Todo mockedTodo = Todo.builder()
+                .completed(false)
+                .id(7L)
+                .mission("buy milk")
+                .note(null)
+                .createDate(LocalDate.of(2026,5,22))
+                .build();
+
+        when(todoRepository.findById(id)).thenReturn(Optional.of(mockedTodo));
+        when(todoRepository.save(any(Todo.class))).thenReturn(mockedTodo);
+
+        UpdateTodoResponse response = todoService.updateTodo(id,request);
+
+        ArgumentCaptor<Todo> captor = ArgumentCaptor.forClass(Todo.class);
+        verify(todoRepository).save(captor.capture());
+
+        assertEquals(mission,captor.getValue().getMission());
+        assertEquals(note,captor.getValue().getNote());
+    }
+
+    @Test
+    @DisplayName("updateTodo Sad-Path: 當 ID 不存在時應拋出 ResourceNotFoundException")
+    void updateTodo_EmptyId_ThrowException(){
+        Long id = 7L;
+
+        UpdateTodoRequest request = new UpdateTodoRequest();
+        request.setMission("buy tea.");
+        request.setNote(null);
+
+        when(todoRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodo(id,request);} );
+
     }
 
 }

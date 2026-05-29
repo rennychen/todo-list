@@ -10,9 +10,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  logging:
-    file:
-      name: logs/app.log
-    level:
-      root: info
-      com.github.renny.todolist: debug
+logging:
+  file:
+    name: logs/app.log
+  level:
+    root: WARN
+    com.github.renny.todolist: DEBUG
