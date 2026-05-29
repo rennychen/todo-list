@@ -9,6 +9,7 @@ import com.github.renny.todolist.modules.todo.dto.response.UpdateTodoResponse;
 import com.github.renny.todolist.modules.todo.service.TodoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,5 +51,11 @@ public class TodoController {
                                                                       @RequestBody @Valid UpdateTodoRequest request){
         UpdateTodoResponse successData = todoService.updateTodo(id,request);
         return ResponseEntity.ok(ApiResponse.success("更改任務成功!",successData));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteTodo(@PathVariable Long id){
+        todoService.deleteTodo(id);
+        return ResponseEntity.ok(ApiResponse.success("成功刪除任務",null));
     }
 }

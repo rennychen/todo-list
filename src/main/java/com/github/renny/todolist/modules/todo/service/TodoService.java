@@ -70,4 +70,12 @@ public class TodoService {
                 saveTodo.getNote(),
                 saveTodo.getCreateDate());
     }
+
+    @Transactional
+    public void deleteTodo(Long id){
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到此任務"));
+        log.info("刪除任務-成功刪除任務.任務id: {},任務內容: {}",todo.getId(),todo.getMission());
+        todoRepository.deleteById(id);
+    }
 }

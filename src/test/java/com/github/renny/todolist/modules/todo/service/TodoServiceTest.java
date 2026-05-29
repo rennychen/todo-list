@@ -188,4 +188,35 @@ class TodoServiceTest {
 
     }
 
+    @Test
+    @DisplayName("deleteTodo Happy-Path")
+    void deleleTodo_success(){
+        Long id = 8L;
+
+        Todo mockedTodo = Todo.builder()
+                .note(null)
+                .completed(true)
+                .mission("happy path test")
+                .createDate(LocalDate.of(2026,3,3))
+                .id(id)
+                .build();
+
+        when(todoRepository.findById(id)).thenReturn(Optional.of(mockedTodo));
+
+        todoService.deleteTodo(id);
+
+        verify(todoRepository,times(1)).deleteById(id);
+
+    }
+
+    @Test
+    @DisplayName("deleteTodo Sad-Path: 當 ID 不存在時應拋出 ResourceNotFoundException")
+    void deleteTodo_EmptyId_ThrowException(){
+        Long id = 7L;
+
+        when(todoRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,() -> todoService.deleteTodo(id));
+    }
+
 }
