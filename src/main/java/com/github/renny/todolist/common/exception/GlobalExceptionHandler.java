@@ -42,9 +42,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(AccountIsExistException.class)
+    public ResponseEntity<ApiResponse<Void>> handlerAccountIsExist(AccountIsExistException e){
+        log.warn("帳號重複錯誤: {}",e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("錯誤,帳號重複," + e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAll(Exception e){
-        log.error("發生非預期例外:" , e);
+        log.error("發生非預期例外: {} | 詳細如下" ,e.toString(), e);
         ApiResponse<Void> response = ApiResponse.error("伺服器發生錯誤,稍後再試");
         return ResponseEntity.internalServerError().body(response);
     }
