@@ -10,6 +10,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+  refresh-expiration: 604800000
+  issuer: my-app
+  header: Authorization
+  prefix: Bearer
+  audience: my-users
 logging:
   file:
     name: logs/app.log

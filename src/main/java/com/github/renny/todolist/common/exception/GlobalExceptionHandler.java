@@ -49,6 +49,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(AccountIsNotExistException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccountIsNotExist(AccountIsNotExistException e){
+        log.warn("帳號不存在錯誤: {}",e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("登入失敗" + e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(PasswordNotMatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePasswordNotMatch(PasswordNotMatchException e){
+        log.warn("密碼不符錯誤: {}",e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("登入失敗," + e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAll(Exception e){
         log.error("發生非預期例外: {} | 詳細如下" ,e.toString(), e);
