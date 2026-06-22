@@ -41,7 +41,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Claims parseToken(String token){
+    public Claims validateAndParseToken(String token){
         try {
             return Jwts.parser()
                     .verifyWith(jjwtSecretKey)
