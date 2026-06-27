@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 
@@ -24,22 +25,25 @@ public class Todo {
     private String note;
     private LocalDate createDate;
     @ManyToOne ( fetch = FetchType.LAZY )
+    @JoinColumn( name = "user_id" )
     private User user;
 
     protected Todo(){}  // for JPA
-    public Todo(String mission, String note){
+    public Todo(String mission, String note, User user){
         if (mission == null || mission.isBlank()) {
             throw new TodoValidationException("建立待辦事項時，任務名稱不可為空");
         }
         this.mission = mission;
         this.note = note;
+        this.user = user;
     }
-    private Todo(Long id,boolean completed,String mission,String note,LocalDate createDate){  //for JUnit
-        this.id = id;
+    private Todo(Long todoId, boolean completed, String mission, String note, LocalDate createDate,User user){  //for JUnit
+        this.id = todoId;
         this.completed = completed;
         this.mission = mission;
         this.note = note;
         this.createDate=createDate;
+        this.user = user;
     }
 
     @PrePersist
@@ -67,6 +71,8 @@ public class Todo {
         return createDate;
     }
 
+    public User getUser(){ return user; }
+
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
@@ -79,6 +85,8 @@ public class Todo {
         this.note = note;
     }
 
+    public void setUser(User user){ this.user = user; }
+
     public static TodoBuilder builder(){
         return new TodoBuilder();
     }
@@ -89,6 +97,7 @@ public class Todo {
         private String mission;
         private String note;
         private LocalDate createDate;
+        private User user;
 
         public TodoBuilder id(Long id){
             this.id = id;
@@ -115,8 +124,13 @@ public class Todo {
             return this;
         }
 
+        public TodoBuilder user(User user){
+            this.user = user;
+            return this;
+        }
+
         public Todo build(){
-            return new Todo(this.id,this.completed,this.mission,this.note,this.createDate);
+            return new Todo(this.id,this.completed,this.mission,this.note,this.createDate,this.user);
         }
     }
 

@@ -60,7 +60,7 @@ public class JwtUtils {
 
     }
 
-    public String getUserIdFromToken(Claims claims){
+    public String getUserIdFromClaims(Claims claims){
         return claims.getSubject();
     }
 }

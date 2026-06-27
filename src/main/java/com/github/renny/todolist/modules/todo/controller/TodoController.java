@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +30,10 @@ public class TodoController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CreateTodoResponse>> createTodo(@RequestBody @Valid CreateTodoRequest request){
-        CreateTodoResponse successData = todoService.createTodo(request);
+    public ResponseEntity<ApiResponse<CreateTodoResponse>> createTodo(
+            @RequestAttribute("currentUserId") Long userId,
+            @RequestBody @Valid CreateTodoRequest request){
+        CreateTodoResponse successData = todoService.createTodo(userId,request);
         return ResponseEntity.ok(ApiResponse.success("建立任務成功!",successData));
     }
 

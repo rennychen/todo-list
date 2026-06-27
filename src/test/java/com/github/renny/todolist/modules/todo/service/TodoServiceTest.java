@@ -8,6 +8,8 @@ import com.github.renny.todolist.modules.todo.dto.response.ReadTodoResponse;
 import com.github.renny.todolist.modules.todo.dto.response.UpdateTodoResponse;
 import com.github.renny.todolist.modules.todo.entity.Todo;
 import com.github.renny.todolist.modules.todo.repository.TodoRepository;
+import com.github.renny.todolist.modules.user.entity.User;
+import com.github.renny.todolist.modules.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +36,8 @@ import static org.mockito.Mockito.when;
 class TodoServiceTest {
     @Mock
     private TodoRepository todoRepository;
+    @Mock
+    private UserRepository userRepository;
     @InjectMocks
     private TodoService todoService;
 
@@ -41,6 +46,8 @@ class TodoServiceTest {
     void createTodo_Success(){
         String mission = "代辦任務測試";
         String note = "備註測試";
+        Long userId = 5L;
+        User mockUser = mock(User.class);
 
         CreateTodoRequest request = new CreateTodoRequest();
         request.setMission(mission);
@@ -52,19 +59,36 @@ class TodoServiceTest {
                 .mission(mission)
                 .note(note)
                 .createDate(LocalDate.now())
+                .user(mockUser)
                 .build();
 
         when(todoRepository.save(any(Todo.class))).thenReturn(todo);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(mockUser.getId()).thenReturn(userId);
 
-        CreateTodoResponse response = todoService.createTodo(request);
+        CreateTodoResponse response = todoService.createTodo(userId,request);
 
         assertNotNull(response);
-        assertEquals(25L,response.getId());
+        assertEquals(25L,response.getTodoId());
         assertEquals(mission,response.getMission());
         assertEquals(note,response.getNote());
         assertFalse(response.getComplete());
 
         verify(todoRepository,times(1)).save(any(Todo.class));
+
+    }
+
+    @Test
+    @DisplayName("createTodo Sad-Path:當 userId 不存在時,拋出ResourceNotFoundException")
+    void createTodo_EmptyUserId_ThrowException(){
+        Long userId = 99L;
+        CreateTodoRequest request = new CreateTodoRequest();
+        request.setMission("test mission");
+        request.setNote(null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> todoService.createTodo(userId,request));
 
     }
 

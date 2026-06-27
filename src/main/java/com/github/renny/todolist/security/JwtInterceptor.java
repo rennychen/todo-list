@@ -4,12 +4,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 
-@Configuration
+@Component
 public class JwtInterceptor implements HandlerInterceptor {
     private final JwtUtils jwtUtils;
 
@@ -32,7 +32,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         try{
             Claims claims = jwtUtils.validateAndParseToken(token);
-            String userId = jwtUtils.getUserIdFromToken(claims);
+            String userId = jwtUtils.getUserIdFromClaims(claims);
             request.setAttribute("currentUserId",userId);
             return true;
         } catch (JwtException e){
@@ -44,7 +44,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     private void sendUnauthorizationResponse(HttpServletResponse response,String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        String json = String.format("{\"status\":false,\"message\":%s,\"data\":null}",message);
+        String json = String.format("{\"status\":false,\"message\":\"%s\",\"data\":null}",message);
         response.getWriter().write(json);
     }
 }
