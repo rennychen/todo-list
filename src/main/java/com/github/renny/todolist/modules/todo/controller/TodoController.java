@@ -44,21 +44,23 @@ public class TodoController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<Void>> updateTodoStatus(@PathVariable Long id){
-        todoService.updateTodoStatus(id);
+    public ResponseEntity<ApiResponse<Void>> updateTodoStatus(@PathVariable Long id,@RequestAttribute("currentUserId") Long userId){
+        todoService.updateTodoStatus(id,userId);
         return ResponseEntity.ok(ApiResponse.success("更改待辦任務狀態成功",null));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<UpdateTodoResponse>> updateTodo(@PathVariable Long id,
-                                                                      @RequestBody @Valid UpdateTodoRequest request){
-        UpdateTodoResponse successData = todoService.updateTodo(id,request);
+                                                                      @RequestBody @Valid UpdateTodoRequest request,
+                                                                      @RequestAttribute("currentUserId") Long userId){
+        UpdateTodoResponse successData = todoService.updateTodo(id,request,userId);
         return ResponseEntity.ok(ApiResponse.success("更改任務成功!",successData));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteTodo(@PathVariable Long id){
-        todoService.deleteTodo(id);
+    public ResponseEntity<ApiResponse<Void>> deleteTodo(@PathVariable Long id,
+                                                        @RequestAttribute("currentUserId")Long userId){
+        todoService.deleteTodo(id,userId);
         return ResponseEntity.ok(ApiResponse.success("成功刪除任務",null));
     }
 }

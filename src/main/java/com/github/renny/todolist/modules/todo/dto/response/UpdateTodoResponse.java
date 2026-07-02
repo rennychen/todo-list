@@ -1,7 +1,5 @@
 package com.github.renny.todolist.modules.todo.dto.response;
 
-import com.github.renny.todolist.modules.todo.dto.request.UpdateTodoRequest;
-
 import java.time.LocalDate;
 
 public class UpdateTodoResponse {
@@ -10,13 +8,15 @@ public class UpdateTodoResponse {
     private LocalDate createDate;
     private String mission;
     private String note;
+    private Long userId;
 
-    public UpdateTodoResponse(Long id,boolean complete,String mission, String note,LocalDate createDate){
+    public UpdateTodoResponse(Long id,boolean complete,String mission, String note,LocalDate createDate,Long userId){
         this.id =id;
         this.complete = complete;
         this.mission = mission;
         this.note = note;
         this.createDate = createDate;
+        this.userId = userId;
     }
 
     public Long getId(){
@@ -38,5 +38,7 @@ public class UpdateTodoResponse {
     public LocalDate getCreateDate(){
         return createDate;
     }
+
+    public Long getUserId(){ return userId; }
 
 }

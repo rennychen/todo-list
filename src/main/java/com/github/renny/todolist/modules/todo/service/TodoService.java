@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestAttribute;
 
 import java.util.List;
 
@@ -62,35 +63,37 @@ public class TodoService {
     }
 
     @Transactional
-    public void updateTodoStatus(Long id) {
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("找不到該任務"));
+    public void updateTodoStatus(Long id,Long userId) {
+        Todo todo = todoRepository.findByIdAndUser_Id(id,userId)
+                .orElseThrow(() -> new ResourceNotFoundException("尚未登入或找不到該任務,請重新嘗試"));
         todo.setCompleted(!todo.getCompleted());
-        log.info("任務狀態更新完成,id= {},目前狀態= {}",id,todo.getCompleted());
+        log.info("任務狀態更新完成,userId: {},todoId: {},目前狀態: {}",userId,id,todo.getCompleted());
         todoRepository.save(todo);
     }
 
     @Transactional
-    public UpdateTodoResponse updateTodo(Long id, UpdateTodoRequest request){
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() ->  new ResourceNotFoundException("找不到該任務"));
+    public UpdateTodoResponse updateTodo(Long id, UpdateTodoRequest request,Long userId){
+        Todo todo = todoRepository.findByIdAndUser_Id(id,userId)
+                .orElseThrow(() -> new ResourceNotFoundException("尚未登入或找不到該任務,請重新嘗試"));
         todo.setMission(request.getMission());
         todo.setNote(request.getNote());
         Todo saveTodo = todoRepository.save(todo);
-        log.info("修改任務完成, mission: {},note: {}",saveTodo.getMission(),saveTodo.getNote());
+        log.info("修改任務完成,userId: {}, mission: {},note: {}",saveTodo.getUser().getId(),saveTodo.getMission(),saveTodo.getNote());
         return new UpdateTodoResponse(
                 saveTodo.getId(),
                 saveTodo.getCompleted(),
                 saveTodo.getMission(),
                 saveTodo.getNote(),
-                saveTodo.getCreateDate());
+                saveTodo.getCreateDate(),
+                saveTodo.getUser().getId());
     }
 
     @Transactional
-    public void deleteTodo(Long id){
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("找不到此任務"));
-        log.info("刪除任務-成功刪除任務.任務id: {},任務內容: {}",todo.getId(),todo.getMission());
+    public void deleteTodo(Long id,Long userId){
+        Todo todo = todoRepository.findByIdAndUser_Id(id,userId)
+                .orElseThrow(() -> new ResourceNotFoundException("尚未登入或找不到該任務,請重新嘗試"));
+        String missionName = todo.getMission();
         todoRepository.deleteById(id);
+        log.info("成功刪除任務,userId: {},todoId: {},任務內容: {}",userId,id,missionName);
     }
 }

@@ -10,6 +10,7 @@ import com.github.renny.todolist.modules.todo.entity.Todo;
 import com.github.renny.todolist.modules.todo.repository.TodoRepository;
 import com.github.renny.todolist.modules.user.entity.User;
 import com.github.renny.todolist.modules.user.repository.UserRepository;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -149,6 +151,8 @@ class TodoServiceTest {
     @DisplayName("updateTodoStatus Happy-Path")
     void updateTodoStatus_success(){
         Long id = 5L;
+        Long userId = 55L;
+        User mockUser = mock(User.class);
 
         Todo mockedTodo = Todo.builder()
                 .createDate(LocalDate.of(2026,5,28))
@@ -156,37 +160,42 @@ class TodoServiceTest {
                 .mission("happy path test")
                 .id(5L)
                 .completed(false)
+                .user(mockUser)
                 .build();
 
-        when(todoRepository.findById(5L)).thenReturn(Optional.of(mockedTodo));
+        when(todoRepository.findByIdAndUser_Id(id,userId)).thenReturn(Optional.of(mockedTodo));
         when(todoRepository.save(any(Todo.class))).thenReturn(mockedTodo);
 
-
-        todoService.updateTodoStatus(id);
+        todoService.updateTodoStatus(id,userId);
 
         ArgumentCaptor<Todo> captor = ArgumentCaptor.forClass(Todo.class);
         verify(todoRepository).save(captor.capture());
         assertTrue(captor.getValue().getCompleted());
 
-        verify(todoRepository,times(1)).findById(5L);
+        verify(todoRepository,times(1)).findByIdAndUser_Id(id,userId);
+
     }
 
     @Test
     @DisplayName("updateTodo Sad-Path:當 ID 不存在時應拋出 ResourceNotFoundException")
     void updateTodoStatus_EmptyId_ThrowException(){
         Long id = 5L;
+        Long userId = 25L;
 
-        when(todoRepository.findById(any())).thenReturn(Optional.empty());
+        when(todoRepository.findByIdAndUser_Id(any(),any())).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodoStatus(id); });
+        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodoStatus(id,userId); });
+
     }
 
     @Test
     @DisplayName("updateTodo Happy-Path")
     void updateTodo_success(){
         Long id = 7L;
+        Long userId = 8L;
         String mission = "buy tea.";
         String note = "happy path test";
+        User mockUser = mock(User.class);
 
         UpdateTodoRequest request = new UpdateTodoRequest();
         request.setMission(mission);
@@ -198,32 +207,32 @@ class TodoServiceTest {
                 .mission("buy milk")
                 .note(null)
                 .createDate(LocalDate.of(2026,5,22))
+                .user(mockUser)
                 .build();
 
-        when(todoRepository.findById(id)).thenReturn(Optional.of(mockedTodo));
+        when(todoRepository.findByIdAndUser_Id(id,userId)).thenReturn(Optional.of(mockedTodo));
         when(todoRepository.save(any(Todo.class))).thenReturn(mockedTodo);
 
-        UpdateTodoResponse response = todoService.updateTodo(id,request);
+        UpdateTodoResponse response = todoService.updateTodo(id,request,userId);
 
         ArgumentCaptor<Todo> captor = ArgumentCaptor.forClass(Todo.class);
-        verify(todoRepository).save(captor.capture());
+        verify(todoRepository,times(1)).save(captor.capture());
 
         assertEquals(mission,captor.getValue().getMission());
         assertEquals(note,captor.getValue().getNote());
+
     }
 
     @Test
     @DisplayName("updateTodo Sad-Path: 當 ID 不存在時應拋出 ResourceNotFoundException")
     void updateTodo_EmptyId_ThrowException(){
-        Long id = 7L;
+        Long id =5L;
+        Long userId = 33L;
+        UpdateTodoRequest mockRequest = new UpdateTodoRequest();
 
-        UpdateTodoRequest request = new UpdateTodoRequest();
-        request.setMission("buy tea.");
-        request.setNote(null);
+        when(todoRepository.findByIdAndUser_Id(anyLong(),anyLong())).thenReturn(Optional.empty());
 
-        when(todoRepository.findById(id)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodo(id,request);} );
+        assertThrows(ResourceNotFoundException.class, () -> { todoService.updateTodo(id,mockRequest,userId);} );
 
     }
 
@@ -231,6 +240,8 @@ class TodoServiceTest {
     @DisplayName("deleteTodo Happy-Path")
     void deleleTodo_success(){
         Long id = 8L;
+        Long userId = 15L;
+        User mockUser = mock(User.class);
 
         Todo mockedTodo = Todo.builder()
                 .note(null)
@@ -238,11 +249,12 @@ class TodoServiceTest {
                 .mission("happy path test")
                 .createDate(LocalDate.of(2026,3,3))
                 .id(id)
+                .user(mockUser)
                 .build();
 
-        when(todoRepository.findById(id)).thenReturn(Optional.of(mockedTodo));
+        when(todoRepository.findByIdAndUser_Id(id,userId)).thenReturn(Optional.of(mockedTodo));
 
-        todoService.deleteTodo(id);
+        todoService.deleteTodo(id,userId);
 
         verify(todoRepository,times(1)).deleteById(id);
 
@@ -252,10 +264,11 @@ class TodoServiceTest {
     @DisplayName("deleteTodo Sad-Path: 當 ID 不存在時應拋出 ResourceNotFoundException")
     void deleteTodo_EmptyId_ThrowException(){
         Long id = 7L;
+        Long userId = 8L;
 
-        when(todoRepository.findById(id)).thenReturn(Optional.empty());
+        when(todoRepository.findByIdAndUser_Id(anyLong(),anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class,() -> todoService.deleteTodo(id));
+        assertThrows(ResourceNotFoundException.class,() -> todoService.deleteTodo(id,userId));
     }
 
 }
