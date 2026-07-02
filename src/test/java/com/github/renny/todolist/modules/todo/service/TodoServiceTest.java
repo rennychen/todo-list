@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,37 +96,53 @@ class TodoServiceTest {
     @Test
     @DisplayName("readTodo Happy-Path")
     void readTodo_success(){
-        Long id = 2L;
+             Long userId = 58L;
+        User mockUser = mock(User.class);
 
-        Todo mockedTodo = Todo.builder()
+        Todo mockedTodo1 = Todo.builder()
                 .id(2L)
                 .createDate(LocalDate.of(2026,5,21))
                 .mission("buy milk")
                 .note("2026/5/25")
                 .completed(false)
+                .user(mockUser)
                 .build();
 
-        when(todoRepository.findById(2L)).thenReturn(Optional.of(mockedTodo));
-        ReadTodoResponse response = todoService.readTodo(id);
+        Todo mockTodo2 = Todo.builder()
+                .id(3L)
+                .completed(false)
+                .createDate(LocalDate.of(2026,7,1))
+                .mission("buy water")
+                .note(null)
+                .user(mockUser)
+                .build();
+
+        List<Todo> mockTodoList = List.of(mockedTodo1,mockTodo2);
+
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(todoRepository.findByUser_Id(userId)).thenReturn(mockTodoList);
+
+        ReadTodoResponse response = todoService.readTodo(userId);
 
         assertNotNull(response);
-        assertFalse(response.getComplete());
-        assertEquals("buy milk",response.getMission());
-        assertEquals("2026/5/25",response.getNote());
-        assertEquals(LocalDate.of(2026,5,21),response.getCreateDate());
+        assertEquals(2,response.getTodoList().size());
+        assertEquals("buy milk",response.getTodoList().get(0).getMission());
+        assertEquals("buy water",response.getTodoList().get(1).getMission());
 
-        verify(todoRepository,times(1)).findById(2L);
+        verify(userRepository,times(1)).findById(userId);
+        verify(todoRepository,times(1)).findByUser_Id(userId);
 
     }
 
     @Test
-    @DisplayName("readTodo Sad-Path:當 ID 不存在時應拋出 ResourceNotFoundException")
+    @DisplayName("readTodo Sad-Path:當 userID 不存在時應拋出 ResourceNotFoundException")
     void readTodo_EmptyId_ThrowException(){
-        Long id = 99L;
+        Long userId = 99L;
 
-        when(todoRepository.findById(id)).thenReturn(Optional.empty());
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class,() -> { todoService.readTodo(id); } );
+        assertThrows(ResourceNotFoundException.class,() -> { todoService.readTodo(userId); } );
     }
 
     @Test

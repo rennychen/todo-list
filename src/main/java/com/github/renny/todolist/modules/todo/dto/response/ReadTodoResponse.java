@@ -1,30 +1,44 @@
 package com.github.renny.todolist.modules.todo.dto.response;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class ReadTodoResponse {
-    private String mission;
-    private String note;
-    private boolean complete;
-    private LocalDate createDate;
+    List<TodoItem> todoList;
 
-    public ReadTodoResponse(String mission, String note,boolean complete,LocalDate createDate){
-        this.mission = mission;
-        this.note = note;
-        this.complete = complete;
-        this.createDate = createDate;
+    public ReadTodoResponse(List<TodoItem> todoList){
+        this.todoList = todoList;
     }
 
-    public String getMission(){
-        return mission;
+    public List<TodoItem> getTodoList(){
+        return todoList;
     }
 
-    public String getNote(){
-        return note;
+    public static class TodoItem{
+        private String mission;
+        private String note;
+        private boolean complete;
+        private LocalDate createDate;
+
+        public TodoItem(String mission, String note,boolean complete,LocalDate createDate){
+            this.mission = mission;
+            this.note = note;
+            this.complete = complete;
+            this.createDate = createDate;
+        }
+
+        public String getMission(){
+            return mission;
+        }
+
+        public String getNote(){
+            return note;
+        }
+
+        public boolean getComplete(){ return complete; }
+
+        public LocalDate getCreateDate(){return createDate;}
+
     }
-
-    public boolean getComplete(){ return complete; }
-
-    public LocalDate getCreateDate(){return createDate;}
 
 }

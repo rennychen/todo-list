@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TodoService {
     private static final Logger log = LoggerFactory.getLogger(TodoService.class);
@@ -43,15 +45,20 @@ public class TodoService {
                 saveTodo.getUser().getId());
     }
 
-    public ReadTodoResponse readTodo(Long id){
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("找不到該任務"));
-        log.info("透過id找到該任務,任務: {},備註: {}",todo.getMission(),todo.getNote());
-        return new ReadTodoResponse(
-                todo.getMission(),
-                todo.getNote(),
-                todo.getCompleted(),
-                todo.getCreateDate());
+    public ReadTodoResponse readTodo(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到該使用者"));
+        List<Todo> todos = todoRepository.findByUser_Id(userId);
+        List<ReadTodoResponse.TodoItem> todoItems = todos.stream()
+                        .map(todo -> new ReadTodoResponse.TodoItem(
+                                todo.getMission(),
+                                todo.getNote(),
+                                todo.getCompleted(),
+                                todo.getCreateDate()
+                        ))
+                        .toList();
+        log.info("透過 userId 找到該任務,userId: {},任務數量: {}",userId,todos.size());
+        return new ReadTodoResponse(todoItems);
     }
 
     @Transactional

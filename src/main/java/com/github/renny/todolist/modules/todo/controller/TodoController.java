@@ -37,9 +37,9 @@ public class TodoController {
         return ResponseEntity.ok(ApiResponse.success("建立任務成功!",successData));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ReadTodoResponse>> readTodo(@PathVariable Long id){
-        ReadTodoResponse successData = todoService.readTodo(id);
+    @GetMapping
+    public ResponseEntity<ApiResponse<ReadTodoResponse>> readTodo(@RequestAttribute("currentUserId") Long userId){
+        ReadTodoResponse successData = todoService.readTodo(userId);
         return ResponseEntity.ok(ApiResponse.success("查詢成功!",successData));
     }
 
