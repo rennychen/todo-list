@@ -1,6 +1,7 @@
 package com.github.renny.todolist.common.exception;
 
 import com.github.renny.todolist.common.response.ApiResponse;
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -63,10 +64,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJwtException(JwtException e) {
+        log.warn("token驗證錯誤: {}",e.getMessage());
+        ApiResponse<Void> response = ApiResponse.error("token驗證錯誤," + e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAll(Exception e){
         log.error("發生非預期例外: {} | 詳細如下" ,e.toString(), e);
         ApiResponse<Void> response = ApiResponse.error("伺服器發生錯誤,稍後再試");
         return ResponseEntity.internalServerError().body(response);
     }
+
 }

@@ -26,7 +26,7 @@ public class JwtUtils {
         this.jjwtSecretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(User user){
+    public String generateAccessToken(User user){
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration());
 
@@ -35,6 +35,18 @@ public class JwtUtils {
                 .claim("userName",user.getUserName())
                 .issuer(jwtProperties.getIssuer())
                 .audience().add(jwtProperties.getAudience()).and()
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(jjwtSecretKey)
+                .compact();
+    }
+
+    public String generateRefreshToken(User user){
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshExpiration());
+
+        return Jwts.builder()
+                .subject(user.getId().toString())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(jjwtSecretKey)

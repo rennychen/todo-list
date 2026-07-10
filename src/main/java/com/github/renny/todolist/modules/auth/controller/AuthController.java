@@ -3,8 +3,10 @@ package com.github.renny.todolist.modules.auth.controller;
 import com.github.renny.todolist.common.response.ApiResponse;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
 import com.github.renny.todolist.modules.auth.dto.response.RegisterAccountResponse;
+import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +33,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginAccountResponse>> loginAccount(@RequestBody @Valid LoginAccountRequest request){
         LoginAccountResponse successData = authService.loginAccount(request);
         return ResponseEntity.ok(ApiResponse.success("登入成功!",successData));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> tokenRefresh(@RequestBody @Valid TokenRefreshRequest request){
+        TokenRefreshResponse successData = authService.tokenRefresh(request);
+        return ResponseEntity.ok(ApiResponse.success("token更新成功",successData));
     }
 }

@@ -3,12 +3,17 @@ package com.github.renny.todolist.modules.auth.service;
 import com.github.renny.todolist.common.exception.AccountIsExistException;
 import com.github.renny.todolist.common.exception.AccountIsNotExistException;
 import com.github.renny.todolist.common.exception.PasswordNotMatchException;
+import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
+import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.user.entity.User;
 import com.github.renny.todolist.modules.user.repository.UserRepository;
 import com.github.renny.todolist.security.JwtUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -103,13 +112,15 @@ class AuthServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(password,mockHashPassword)).thenReturn(true);
-        when(jwtUtils.generateToken(any(User.class))).thenReturn(mockToken);
+        when(jwtUtils.generateAccessToken(any(User.class))).thenReturn(mockToken);
+        when(jwtUtils.generateRefreshToken(any(User.class))).thenReturn(mockToken);
 
         LoginAccountResponse response = authService.loginAccount(request);
 
         verify(userRepository,times(1)).findByEmail(email);
         verify(passwordEncoder,times(1)).matches(password,mockHashPassword);
-        assertEquals(mockToken,response.getToken());
+        assertEquals(mockToken,response.getAccessToken());
+        assertEquals(mockToken,response.getRefreshToken());
         assertEquals(userName,response.getUserName());
     }
 
@@ -144,4 +155,62 @@ class AuthServiceTest {
 
         assertThrows(PasswordNotMatchException.class,() -> authService.loginAccount(request));
     }
+
+    @Test
+    @DisplayName("tokenRefresh Happy-path")
+    void tokenRefresh_success(){
+        String mockRefreshToken = "Test.refresh.token";
+        String mockAccessToken = "Test.access.token";
+        String userIdStr = "66";
+        Long userId = Long.valueOf(userIdStr);
+        TokenRefreshRequest request = new TokenRefreshRequest();
+        request.setRefreshToken(mockRefreshToken);
+        Claims mockClaims = mock(Claims.class);
+        User mockUser = mock(User.class);
+
+        when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
+        when(jwtUtils.getUserIdFromClaims(mockClaims)).thenReturn(userIdStr);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(jwtUtils.generateAccessToken(mockUser)).thenReturn(mockAccessToken);
+        when(jwtUtils.generateRefreshToken(mockUser)).thenReturn(mockRefreshToken);
+
+        TokenRefreshResponse response = authService.tokenRefresh(request);
+
+        verify(jwtUtils,times(1)).validateAndParseToken(mockRefreshToken);
+        verify(jwtUtils,times(1)).getUserIdFromClaims(any(Claims.class));
+        verify(userRepository,times(1)).findById(Long.valueOf(userIdStr));
+
+        assertEquals(mockAccessToken,response.getAccessToken());
+        assertEquals(mockRefreshToken,response.getRefreshToken());
+
+    }
+
+    @Test
+    @DisplayName("tokenRefresh Sad-Path:當 refresh token 錯誤,拋出JwtException")
+    void tokenRefresh_tokenNotValid_throwException(){
+        TokenRefreshRequest request = new TokenRefreshRequest();
+        request.setRefreshToken("test.refresh.token");
+
+        when(jwtUtils.validateAndParseToken(anyString())).thenThrow(new JwtException("error token"));
+
+        assertThrows(JwtException.class,() -> authService.tokenRefresh(request));
+    }
+
+    @Test
+    @DisplayName("tokenRefresh Sad-Path:當找不到 userId,拋出ResourceNotFoundException")
+    void tokenRefresh_userIdNotFound_throwException(){
+        TokenRefreshRequest request = new TokenRefreshRequest();
+        request.setRefreshToken("test.refresh.token");
+        Claims mockClaims = mock(Claims.class);
+
+        when(jwtUtils.validateAndParseToken(request.getRefreshToken())).thenReturn(mockClaims);
+        when(jwtUtils.getUserIdFromClaims(any(Claims.class))).thenReturn("53");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,() -> authService.tokenRefresh(request));
+
+        verify(jwtUtils,never()).generateAccessToken(any(User.class));
+        verify(jwtUtils,never()).generateRefreshToken(any(User.class));
+    }
+
 }

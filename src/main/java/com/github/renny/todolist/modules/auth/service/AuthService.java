@@ -3,13 +3,17 @@ package com.github.renny.todolist.modules.auth.service;
 import com.github.renny.todolist.common.exception.AccountIsExistException;
 import com.github.renny.todolist.common.exception.AccountIsNotExistException;
 import com.github.renny.todolist.common.exception.PasswordNotMatchException;
+import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
 import com.github.renny.todolist.modules.auth.dto.response.RegisterAccountResponse;
+import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.user.entity.User;
 import com.github.renny.todolist.modules.user.repository.UserRepository;
 import com.github.renny.todolist.security.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +60,28 @@ public class AuthService {
         }
         log.info("登入成功,帳號: {},使用者名稱: {}",user.getEmail(),user.getUserName());
         return new LoginAccountResponse(
-                jwtUtils.generateToken(user),
+                jwtUtils.generateAccessToken(user),
+                jwtUtils.generateRefreshToken(user),
                 user.getUserName()
         );
+    }
+
+    @Transactional
+    public TokenRefreshResponse tokenRefresh(TokenRefreshRequest request){
+        Claims claims = jwtUtils.validateAndParseToken(request.getRefreshToken());
+        String userIdStr = jwtUtils.getUserIdFromClaims(claims);
+        Long userId = Long.valueOf(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("使用者id查不到該帳戶,userId: {}",userId);
+                    return new ResourceNotFoundException("找不到該用戶");
+                });
+        String accessToken = jwtUtils.generateAccessToken(user);
+        String refreshToken = jwtUtils.generateRefreshToken(user);
+        log.info("token更新成功,userId: {}",userId);
+        return new TokenRefreshResponse(
+                accessToken,
+                refreshToken);
     }
 
 }
