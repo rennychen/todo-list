@@ -12,9 +12,11 @@ import java.io.IOException;
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
     private final JwtUtils jwtUtils;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtInterceptor(JwtUtils jwtUtils){
+    public JwtInterceptor(JwtUtils jwtUtils,TokenBlacklistService tokenBlacklistService){
         this.jwtUtils = jwtUtils;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -25,10 +27,16 @@ public class JwtInterceptor implements HandlerInterceptor {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            sendUnauthorizationResponse(response,"缺少憑證或憑證格式錯誤，請重新登入");
             return false;
         }
 
         String token = authHeader.substring(7);
+
+        if(tokenBlacklistService.isTokenBlacklist(token)){
+            sendUnauthorizationResponse(response,"Token已過期，請重新登入");
+            return false;
+        }
 
         try{
             Claims claims = jwtUtils.validateAndParseToken(token);

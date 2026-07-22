@@ -13,6 +13,7 @@ import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.user.entity.User;
 import com.github.renny.todolist.modules.user.repository.UserRepository;
 import com.github.renny.todolist.security.JwtUtils;
+import com.github.renny.todolist.security.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -22,15 +23,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    private final static Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public AuthService(UserRepository userRepository,PasswordEncoder passwordEncoder,JwtUtils jwtUtils){
+    public AuthService(UserRepository userRepository,PasswordEncoder passwordEncoder,JwtUtils jwtUtils,TokenBlacklistService tokenBlacklistService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Transactional
@@ -70,6 +73,10 @@ public class AuthService {
     public TokenRefreshResponse tokenRefresh(TokenRefreshRequest request){
         Claims claims = jwtUtils.validateAndParseToken(request.getRefreshToken());
         String userIdStr = jwtUtils.getUserIdFromClaims(claims);
+
+        long remainingTimeMillis = claims.getExpiration().getTime() - System.currentTimeMillis();
+        tokenBlacklistService.blacklistToken(request.getRefreshToken(),remainingTimeMillis);
+
         Long userId = Long.valueOf(userIdStr);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {

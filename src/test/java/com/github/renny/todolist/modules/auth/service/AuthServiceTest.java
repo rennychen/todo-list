@@ -12,6 +12,7 @@ import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.user.entity.User;
 import com.github.renny.todolist.modules.user.repository.UserRepository;
 import com.github.renny.todolist.security.JwtUtils;
+import com.github.renny.todolist.security.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -45,6 +49,8 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtUtils jwtUtils;
+    @Mock
+    private TokenBlacklistService tokenBlacklistService;
 
     @InjectMocks
     private AuthService authService;
@@ -161,6 +167,7 @@ class AuthServiceTest {
     void tokenRefresh_success(){
         String mockRefreshToken = "Test.refresh.token";
         String mockAccessToken = "Test.access.token";
+        String newMockRefreshToken = "New.mock.refresh.token";
         String userIdStr = "66";
         Long userId = Long.valueOf(userIdStr);
         TokenRefreshRequest request = new TokenRefreshRequest();
@@ -168,20 +175,24 @@ class AuthServiceTest {
         Claims mockClaims = mock(Claims.class);
         User mockUser = mock(User.class);
 
+        Date futureExpiration = new Date(System.currentTimeMillis() + 3600000);
+
         when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
         when(jwtUtils.getUserIdFromClaims(mockClaims)).thenReturn(userIdStr);
+        when(mockClaims.getExpiration()).thenReturn(futureExpiration);
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(jwtUtils.generateAccessToken(mockUser)).thenReturn(mockAccessToken);
-        when(jwtUtils.generateRefreshToken(mockUser)).thenReturn(mockRefreshToken);
+        when(jwtUtils.generateRefreshToken(mockUser)).thenReturn(newMockRefreshToken);
 
         TokenRefreshResponse response = authService.tokenRefresh(request);
 
         verify(jwtUtils,times(1)).validateAndParseToken(mockRefreshToken);
         verify(jwtUtils,times(1)).getUserIdFromClaims(any(Claims.class));
         verify(userRepository,times(1)).findById(Long.valueOf(userIdStr));
+        verify(tokenBlacklistService,times(1)).blacklistToken(eq(mockRefreshToken),anyLong());
 
         assertEquals(mockAccessToken,response.getAccessToken());
-        assertEquals(mockRefreshToken,response.getRefreshToken());
+        assertEquals(newMockRefreshToken,response.getRefreshToken());
 
     }
 
@@ -202,10 +213,12 @@ class AuthServiceTest {
         TokenRefreshRequest request = new TokenRefreshRequest();
         request.setRefreshToken("test.refresh.token");
         Claims mockClaims = mock(Claims.class);
+        Date futureExpiration = new Date(System.currentTimeMillis() + 3600000);
 
         when(jwtUtils.validateAndParseToken(request.getRefreshToken())).thenReturn(mockClaims);
         when(jwtUtils.getUserIdFromClaims(any(Claims.class))).thenReturn("53");
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        when(mockClaims.getExpiration()).thenReturn(futureExpiration);
 
         assertThrows(ResourceNotFoundException.class,() -> authService.tokenRefresh(request));
 
