@@ -2,6 +2,7 @@ package com.github.renny.todolist.modules.auth.controller;
 
 import com.github.renny.todolist.common.response.ApiResponse;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.LogoutAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
@@ -11,6 +12,7 @@ import com.github.renny.todolist.modules.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,5 +41,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenRefreshResponse>> tokenRefresh(@RequestBody @Valid TokenRefreshRequest request){
         TokenRefreshResponse successData = authService.tokenRefresh(request);
         return ResponseEntity.ok(ApiResponse.success("token更新成功",successData));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logoutAccount(@RequestBody @Valid LogoutAccountRequest resquest,
+                                                           @RequestAttribute("currentUserId") Long userId){
+        authService.logoutAccount(resquest,userId);
+        return ResponseEntity.ok(ApiResponse.success("登出成功",null));
     }
 }

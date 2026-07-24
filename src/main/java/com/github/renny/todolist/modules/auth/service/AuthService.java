@@ -5,6 +5,7 @@ import com.github.renny.todolist.common.exception.AccountIsNotExistException;
 import com.github.renny.todolist.common.exception.PasswordNotMatchException;
 import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.LogoutAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
@@ -15,6 +16,7 @@ import com.github.renny.todolist.modules.user.repository.UserRepository;
 import com.github.renny.todolist.security.JwtUtils;
 import com.github.renny.todolist.security.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +91,27 @@ public class AuthService {
         return new TokenRefreshResponse(
                 accessToken,
                 refreshToken);
+    }
+
+    @Transactional
+    public void logoutAccount(LogoutAccountRequest resquest, Long userId){
+        log.info("用戶準備登出,userId: {}",userId);
+        try{
+            Claims accessTokenClaims = jwtUtils.validateAndParseToken(resquest.getAccessToken());
+            long accessTokenRemainingTimeMillis = accessTokenClaims.getExpiration().getTime() - System.currentTimeMillis();
+            tokenBlacklistService.blacklistToken(resquest.getAccessToken(),accessTokenRemainingTimeMillis);
+        }catch (JwtException e){
+            log.debug("access token驗證失敗,跳過加入黑名單. {}", e.getMessage());
+        }
+
+        try {
+            Claims refreshTokenClaims = jwtUtils.validateAndParseToken(resquest.getRefreshToken());
+            long refreshTokenRemainingTimeMillis = refreshTokenClaims.getExpiration().getTime() - System.currentTimeMillis();
+            tokenBlacklistService.blacklistToken(resquest.getRefreshToken(),refreshTokenRemainingTimeMillis);
+        }catch (JwtException e){
+            log.debug("refresh token驗證失敗,,跳過加入黑名單. {}", e.getMessage());
+        }
+        log.info("用戶token已加入blacklist");
     }
 
 }

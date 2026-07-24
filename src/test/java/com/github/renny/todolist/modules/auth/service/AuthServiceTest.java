@@ -5,6 +5,7 @@ import com.github.renny.todolist.common.exception.AccountIsNotExistException;
 import com.github.renny.todolist.common.exception.PasswordNotMatchException;
 import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
+import com.github.renny.todolist.modules.auth.dto.request.LogoutAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
@@ -28,13 +29,11 @@ import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -224,6 +223,34 @@ class AuthServiceTest {
 
         verify(jwtUtils,never()).generateAccessToken(any(User.class));
         verify(jwtUtils,never()).generateRefreshToken(any(User.class));
+    }
+
+    @Test
+    @DisplayName("logoutAccount Happy-Path")
+    void logoutAccount_success(){
+        String mockRefreshToken = "Test.refresh.token";
+        String mockAccessToken = "Test.access.token";
+        Long userId = 6L;
+        Claims mockClaims = mock(Claims.class);
+
+        LogoutAccountRequest request = new LogoutAccountRequest();
+        request.setAccessToken(mockAccessToken);
+        request.setRefreshToken(mockRefreshToken);
+
+        when(jwtUtils.validateAndParseToken(mockAccessToken)).thenReturn(mockClaims);
+        when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
+
+        Date featureExpirationTime = new Date(System.currentTimeMillis() + 3600000);
+        when(mockClaims.getExpiration()).thenReturn(featureExpirationTime);
+        when(jwtUtils.validateAndParseToken(mockAccessToken)).thenReturn(mockClaims);
+        when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
+
+        authService.logoutAccount(request,userId);
+
+        verify(jwtUtils,times(1)).validateAndParseToken(mockAccessToken);
+        verify(jwtUtils,times(1)).validateAndParseToken(mockRefreshToken);
+        verify(tokenBlacklistService,times(1)).blacklistToken(eq(mockAccessToken),anyLong());
+        verify(tokenBlacklistService,times(1)).blacklistToken(eq(mockRefreshToken),anyLong());
     }
 
 }
