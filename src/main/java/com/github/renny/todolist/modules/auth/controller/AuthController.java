@@ -9,8 +9,10 @@ import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
 import com.github.renny.todolist.modules.auth.dto.response.RegisterAccountResponse;
 import com.github.renny.todolist.modules.auth.dto.response.TokenRefreshResponse;
 import com.github.renny.todolist.modules.auth.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,8 +47,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logoutAccount(@RequestBody @Valid LogoutAccountRequest resquest,
-                                                           @RequestAttribute("currentUserId") Long userId){
-        authService.logoutAccount(resquest,userId);
+                                                           @RequestAttribute("currentUserId") Long userId,
+                                                           HttpServletRequest httpRequest){
+        String accessToken = httpRequest.getHeader("Authorization").substring(7);
+        authService.logoutAccount(resquest.getRefreshToken(),userId,accessToken);
         return ResponseEntity.ok(ApiResponse.success("登出成功",null));
     }
 }

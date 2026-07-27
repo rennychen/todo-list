@@ -94,20 +94,20 @@ public class AuthService {
     }
 
     @Transactional
-    public void logoutAccount(LogoutAccountRequest resquest, Long userId){
+    public void logoutAccount(String refreshToken, Long userId,String accessToken){
         log.info("用戶準備登出,userId: {}",userId);
         try{
-            Claims accessTokenClaims = jwtUtils.validateAndParseToken(resquest.getAccessToken());
+            Claims accessTokenClaims = jwtUtils.validateAndParseToken(accessToken);
             long accessTokenRemainingTimeMillis = accessTokenClaims.getExpiration().getTime() - System.currentTimeMillis();
-            tokenBlacklistService.blacklistToken(resquest.getAccessToken(),accessTokenRemainingTimeMillis);
+            tokenBlacklistService.blacklistToken(accessToken,accessTokenRemainingTimeMillis);
         }catch (JwtException e){
             log.debug("access token驗證失敗,跳過加入黑名單. {}", e.getMessage());
         }
 
         try {
-            Claims refreshTokenClaims = jwtUtils.validateAndParseToken(resquest.getRefreshToken());
+            Claims refreshTokenClaims = jwtUtils.validateAndParseToken(refreshToken);
             long refreshTokenRemainingTimeMillis = refreshTokenClaims.getExpiration().getTime() - System.currentTimeMillis();
-            tokenBlacklistService.blacklistToken(resquest.getRefreshToken(),refreshTokenRemainingTimeMillis);
+            tokenBlacklistService.blacklistToken(refreshToken,refreshTokenRemainingTimeMillis);
         }catch (JwtException e){
             log.debug("refresh token驗證失敗,,跳過加入黑名單. {}", e.getMessage());
         }

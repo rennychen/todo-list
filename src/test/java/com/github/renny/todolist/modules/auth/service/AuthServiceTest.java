@@ -5,7 +5,6 @@ import com.github.renny.todolist.common.exception.AccountIsNotExistException;
 import com.github.renny.todolist.common.exception.PasswordNotMatchException;
 import com.github.renny.todolist.common.exception.ResourceNotFoundException;
 import com.github.renny.todolist.modules.auth.dto.request.LoginAccountRequest;
-import com.github.renny.todolist.modules.auth.dto.request.LogoutAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.RegisterAccountRequest;
 import com.github.renny.todolist.modules.auth.dto.request.TokenRefreshRequest;
 import com.github.renny.todolist.modules.auth.dto.response.LoginAccountResponse;
@@ -233,10 +232,6 @@ class AuthServiceTest {
         Long userId = 6L;
         Claims mockClaims = mock(Claims.class);
 
-        LogoutAccountRequest request = new LogoutAccountRequest();
-        request.setAccessToken(mockAccessToken);
-        request.setRefreshToken(mockRefreshToken);
-
         when(jwtUtils.validateAndParseToken(mockAccessToken)).thenReturn(mockClaims);
         when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
 
@@ -245,7 +240,7 @@ class AuthServiceTest {
         when(jwtUtils.validateAndParseToken(mockAccessToken)).thenReturn(mockClaims);
         when(jwtUtils.validateAndParseToken(mockRefreshToken)).thenReturn(mockClaims);
 
-        authService.logoutAccount(request,userId);
+        authService.logoutAccount(mockRefreshToken,userId,mockAccessToken);
 
         verify(jwtUtils,times(1)).validateAndParseToken(mockAccessToken);
         verify(jwtUtils,times(1)).validateAndParseToken(mockRefreshToken);
